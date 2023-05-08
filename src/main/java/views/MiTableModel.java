@@ -1,12 +1,19 @@
 package views;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.table.AbstractTableModel;
+
+import centroeducativo2JPA.Estudiante;
 
 
 
 public class MiTableModel  extends AbstractTableModel {
 	Object datos[][] = null;
 	String titulos[] = null;
+	List<Object[]> datos1 = new ArrayList<Object[]>();
+
 
 	/**
 	 * 
@@ -77,5 +84,15 @@ public class MiTableModel  extends AbstractTableModel {
 		this.datos[rowIndex][columnIndex] = aValue;
 		fireTableCellUpdated(rowIndex, columnIndex);
 	}	
+	
+	/**
+	 * 
+	 * @param estudiantes
+	 */
+	public void setDatos(Object[][] datos) {
+	    this.datos = datos;
+	    fireTableDataChanged();
+	}
+
 
 }

@@ -1,19 +1,30 @@
 package controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 import centroeducativo2JPA.Estudiante;
+import centroeducativo2JPA.Materia;
+import centroeducativo2JPA.Profesor;
+import views.JTableEstudiante;
+import views.MiTableModel;
 
 public class ControladorEstudiante {
 	
 	private static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("centroeducativo2");
 
-    
+    /**
+     * 
+     * @return
+     */
     public static List<Estudiante> findAll() {
 
         EntityManager em = entityManagerFactory.createEntityManager();
@@ -23,152 +34,145 @@ public class ControladorEstudiante {
         em.close();
         return l;
     }
+    
+    /**
+     * 
+     * @return
+     */
+    public static Estudiante findFirst() {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        Query query = em.createQuery("SELECT e FROM Estudiante e ORDER BY e.id ASC");
+        query.setMaxResults(1);
+        Estudiante result = (Estudiante) query.getSingleResult();
+        em.close();
+        return result;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static Estudiante findPrevious(Estudiante e) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        Query query = em.createQuery("SELECT e FROM Estudiante e WHERE e.id < :id ORDER BY e.id DESC");
+        query.setParameter("id", e.getId());
+        query.setMaxResults(1);
+        Estudiante result = null;
+        try {
+            result = (Estudiante) query.getSingleResult();
+        } catch (NoResultException ex) {
+        	return result;
+        }
+        em.close();
+        return result;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static Estudiante findNext(Estudiante e) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        Query query = em.createQuery("SELECT e FROM Estudiante e WHERE e.id > :id ORDER BY e.id ASC");
+        query.setParameter("id", e.getId());
+        query.setMaxResults(1);
+        Estudiante result = null;
+        try {
+            result = (Estudiante) query.getSingleResult();
+        } catch (NoResultException ex) {
+        	return result;
+        }
+        em.close();
+        return result;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public static Estudiante findLast() {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        Query query = em.createQuery("SELECT e FROM Estudiante e ORDER BY e.id DESC");
+        query.setMaxResults(1);
+        Estudiante result = (Estudiante) query.getSingleResult();
+        em.close();
+        return result;
+    }
+    
+    /**
+	 * 
+	 * @param l
+	 */
+	public static void guardar (Estudiante l) {
+		if (l.getId() == 0) {
+			insertar(l);
+		}
+		else {
+			modificar(l);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param l
+	 */
+	public static void insertar (Estudiante l) {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+		em.persist(l);
+		em.getTransaction().commit();
+		em.close();
+	}
+	
+	/**
+	 * 
+	 * @param l
+	 */
+	public static void modificar (Estudiante l) {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+		em.merge(l);
+		em.getTransaction().commit();
+		em.close();
+	}
+	
+	/**
+	 * 
+	 * @param l
+	 */
+	public static void eliminar (Estudiante l) {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+		l = em.merge(l);
+		em.remove(l);
+		em.getTransaction().commit();
+		em.close();
+	}
+	
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public static Estudiante getEstudianteById(int id) {
+	    EntityManager em = entityManagerFactory.createEntityManager();
+	    Estudiante estudiante = em.find(Estudiante.class, id);
+	    em.close();
+	    return estudiante;
+	}
+	
+	/**
+	 * 
+	 */
+	public static void actualizarTabla(MiTableModel modelo) {
+	    List<Estudiante> estudiantes = findAll();
+	    List<Object[]> datos = new ArrayList<Object[]>();
+	    for (Estudiante e : estudiantes) {
+	        Object[] fila = new Object[]{e.getId(), e.getNombre(), e.getApellido1(), e.getApellido2(), e.getTelefono(), e.getDireccion(), e.getDni(), e.getEmail(), e.getTipologiasexo().toString()};
+	        datos.add(fila);
+	    }
+	    modelo.setDatos(datos.toArray(new Object[][] {}));
+	}
 
 }
 
-
-
-
-
-
-
-//public class ControladorLocalidad {
-//
-//	private static EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("alquileres");
-//
-//	/**
-//	 * 
-//	 * @param id
-//	 * @return
-//	 */
-//	public static Localidad findById (int id) {
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		Localidad l = (Localidad) em.find(Localidad.class, id);	
-//		em.close();
-//		return l;
-//	}
-//	
-//	/**
-//	 * 
-//	 * @return
-//	 */
-//	public static List<Localidad> findAll() {
-//		
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		Query q = em.createNativeQuery("SELECT * FROM localidad;", Localidad.class);
-//		List<Localidad> l = (List<Localidad>) q.getResultList();
-//		
-//		em.close();
-//		return l;
-//	}
-//	
-//	/**
-//	 * 
-//	 * @param descripcion
-//	 * @return
-//	 */
-//	public static List<Localidad> findByLikeDescripcion (String descripcion) {
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		Query q = em.createNativeQuery("SELECT * FROM localidad where descripcion like ?;", Localidad.class);
-//		q.setParameter(1, "%" + descripcion + "%");
-//		List<Localidad> l = (List<Localidad>) q.getResultList();
-//		
-//		em.close();
-//		return l;
-//	}
-//	
-//	/**
-//	 * 
-//	 * @param l
-//	 */
-//	public static void guardar (Localidad l) {
-//		if (l.getId() == 0) {
-//			insertar(l);
-//		}
-//		else {
-//			modificar(l);
-//		}
-//	}
-//	
-//	/**
-//	 * 
-//	 * @param l
-//	 */
-//	public static void insertar (Localidad l) {
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		em.getTransaction().begin();
-//		em.persist(l);
-//		em.getTransaction().commit();
-//		em.close();
-//	}
-//	
-//	/**
-//	 * 
-//	 * @param l
-//	 */
-//	public static void modificar (Localidad l) {
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		em.getTransaction().begin();
-//		em.merge(l);
-//		em.getTransaction().commit();
-//		em.close();
-//	}
-//	
-//	
-//	/**
-//	 * 
-//	 * @param l
-//	 */
-//	public static void eliminar (Localidad l) {
-//		EntityManager em = entityManagerFactory.createEntityManager();
-//		em.getTransaction().begin();
-//		l = em.merge(l);
-//		em.remove(l);
-//		em.getTransaction().commit();
-//		em.close();
-//	}
-//	
-//}
-
-
-
-
-
-//private void guardar() {
-//    estudiantesParaGuardar.removeAll(estudiantesParaGuardar);
-//    for (int i = 0; i < listModelEstudiantes2.size(); i++) {
-//        estudiantesParaGuardar.add(listModelEstudiantes2.getElementAt(i));
-//    }
-//    for (Estudiante estudiante : estudiantesParaGuardar) {
-//        Valoracionmateria v = ValoracionMateriaController.notaEstudianteMateriaProfesor(estudiante,
-//                (Profesor) jcbProfesor.getSelectedItem(), (Materia) jcbMateria.getSelectedItem());
-//        if (v != null) {
-//            v.setValoracion((float) jcbNota.getSelectedItem());
-//            ValoracionMateriaController.update(v);
-//        } else {
-//            v = new Valoracionmateria();
-//            v.setEstudiante(estudiante);
-//            v.setMateria((Materia) jcbMateria.getSelectedItem());
-//            v.setProfesor((Profesor) jcbProfesor.getSelectedItem());
-//            v.setValoracion((float) jcbNota.getSelectedItem());
-//            ValoracionMateriaController.insert(v);
-//        }
-//    }
-//}
-
-
-
-
-
-//public static Valoracionmateria notaEstudianteMateriaProfesor(Estudiante e, Profesor p, Materia m) {
-//    Valoracionmateria v = null;
-//    EntityManager em = entityManagerFactory.createEntityManager();
-//    try {
-//        Query q = em.createNativeQuery("select * from valoracionmateria where idEstudiante = "+e.getId()+" and idProfesor = "+p.getId()+" and idMateria = "+m.getId()+";", Valoracionmateria.class);
-//        v = (Valoracionmateria) q.getSingleResult();
-//    
-//    } catch (Exception e2) {
-//    }
-//    em.close();
-//    return v;
-//}
